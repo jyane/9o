@@ -3,7 +3,7 @@
 assert() {
     expected="$1"
     input="$2"
-    go run main.go "$input" > out.s
+    go run *.go "$input" > out.s
     cat out.s
     gcc -o out out.s
     ./out
