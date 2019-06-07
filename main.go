@@ -20,7 +20,7 @@ type Token struct {
 	value int
 }
 
-func isNumber(r rune) bool {
+func isDigit(r rune) bool {
 	c := int(r) - '0'
 	return 0 <= c && c <= 9
 }
@@ -33,10 +33,10 @@ func tokenize(s string, index int) []Token {
 		res = append(res, Token{Plus, 0})
 	} else if r == '-' {
 		res = append(res, Token{Minus, 0})
-	} else if isNumber(r) {
+	} else if isDigit(r) {
 		var ns string
 		for i := index; i < N; i++ {
-			if isNumber(rune(s[i])) {
+			if isDigit(rune(s[i])) {
 				ns += string(s[i])
 			} else {
 				break
