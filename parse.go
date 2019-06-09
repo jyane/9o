@@ -45,13 +45,23 @@ func term(ts *TokenStream) *Node {
 	panic("parse error: unknown")
 }
 
+func unary(ts *TokenStream) *Node {
+	if ts.consume(TokenPlus) {
+		return term(ts)
+	}
+	if ts.consume(TokenMinus) {
+		return &Node{NodeMinus, &Node{NodeNumber, nil, nil, 0}, term(ts), 0}
+	}
+	return term(ts)
+}
+
 func mul(ts *TokenStream) *Node {
-	node := term(ts)
+	node := unary(ts)
 	for {
 		if ts.consume(TokenMultiply) {
-			node = &Node{NodeMultiply, node, term(ts), 0}
+			node = &Node{NodeMultiply, node, unary(ts), 0}
 		} else if ts.consume(TokenDivide) {
-			node = &Node{NodeDivide, node, term(ts), 0}
+			node = &Node{NodeDivide, node, unary(ts), 0}
 		} else {
 			return node
 		}
