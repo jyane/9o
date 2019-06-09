@@ -16,6 +16,8 @@ assert() {
 
 assert 42 42
 assert 0 0
-assert 9 ' 11 + 1 - 3 '
+assert 8 ' 11 * 1 - 3 '
+assert 3 ' 2 * 3 / 2'
+assert 45 '1 + 2 + 3+4+5+6+7+8+9'
 
 echo 'Done'
