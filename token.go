@@ -8,12 +8,14 @@ import (
 type TokenType string
 
 const (
-	TokenEOF      TokenType = "EOF"
-	TokenPlus     TokenType = "+"
-	TokenMinus    TokenType = "-"
-	TokenMultiply TokenType = "*"
-	TokenDivide   TokenType = "/"
-	TokenNumber   TokenType = "number"
+	TokenEOF            TokenType = "EOF"
+	TokenPlus           TokenType = "+"
+	TokenMinus          TokenType = "-"
+	TokenMultiply       TokenType = "*"
+	TokenDivide         TokenType = "/"
+	TokenNumber         TokenType = "number"
+	TokenOpenParenthes  TokenType = "("
+	TokenCloseParenthes TokenType = ")"
 )
 
 type Token struct {
@@ -77,6 +79,10 @@ func tokenize(s string, index int) *TokenStream {
 		ts.add(&Token{TokenMultiply, 0})
 	} else if r == '/' {
 		ts.add(&Token{TokenDivide, 0})
+	} else if r == '(' {
+		ts.add(&Token{TokenOpenParenthes, 0})
+	} else if r == ')' {
+		ts.add(&Token{TokenCloseParenthes, 0})
 	} else if isDigit(r) {
 		var ns string
 		for i := index; i < N; i++ {

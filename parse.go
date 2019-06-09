@@ -5,11 +5,13 @@ import "fmt"
 type NodeType string
 
 const (
-	NodeNumber   NodeType = "number"
-	NodePlus     NodeType = "+"
-	NodeMinus    NodeType = "-"
-	NodeMultiply NodeType = "*"
-	NodeDivide   NodeType = "/"
+	NodeNumber         NodeType = "number"
+	NodePlus           NodeType = "+"
+	NodeMinus          NodeType = "-"
+	NodeMultiply       NodeType = "*"
+	NodeDivide         NodeType = "/"
+	NodeOpenParenthes  NodeType = "("
+	NodeCloseParenthes NodeType = ")"
 )
 
 type Node struct {
@@ -31,10 +33,16 @@ func (node *Node) print() {
 
 func term(ts *TokenStream) *Node {
 	t := ts.now()
-	if ts.consume(TokenNumber) {
+	if ts.consume(TokenOpenParenthes) {
+		node := expr(ts)
+		if !ts.consume(TokenCloseParenthes) {
+			panic("parse error: couldn't find a close parenthes")
+		}
+		return node
+	} else if ts.consume(TokenNumber) {
 		return &Node{NodeNumber, nil, nil, t.value}
 	}
-	panic("parse error")
+	panic("parse error: unknown")
 }
 
 func mul(ts *TokenStream) *Node {
