@@ -22,6 +22,10 @@ const (
 	TokenLess           TokenType = "<"
 	TokenGreaterEqual   TokenType = ">="
 	TokenGreater        TokenType = ">"
+	TokenIdentifier     TokenType = "identifier"
+	TokenAssign         TokenType = "="
+	TokenSemi           TokenType = ";"
+	TokenReturn         TokenType = "return"
 )
 
 type Token struct {
@@ -60,6 +64,10 @@ func (ts *TokenStream) merge(that *TokenStream) *TokenStream {
 	return ts
 }
 
+func (ts *TokenStream) isEnd() bool {
+	return ts.pos == len(ts.tokens)-1
+}
+
 func (ts *TokenStream) print() {
 	fmt.Print("TokenStream{tokens=")
 	for _, v := range ts.tokens {
@@ -71,6 +79,10 @@ func (ts *TokenStream) print() {
 func isDigit(r rune) bool {
 	c := int(r) - '0'
 	return 0 <= c && c <= 9
+}
+
+func isLowerAlphabet(r rune) bool {
+	return 'a' <= r && r <= 'z'
 }
 
 func tokenize(s string, index int) *TokenStream {
@@ -93,6 +105,8 @@ func tokenize(s string, index int) *TokenStream {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
 			index = index + 1
 			ts.add(&Token{TokenEqual, 0})
+		} else {
+			ts.add(&Token{TokenAssign, 0})
 		}
 	} else if r == '!' {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
@@ -130,6 +144,23 @@ func tokenize(s string, index int) *TokenStream {
 		}
 		index = index + len(ns) - 1
 		ts.add(&Token{TokenNumber, num})
+	} else if isLowerAlphabet(r) {
+		var ns string
+		for i := index; i < N; i++ {
+			if isLowerAlphabet(rune(s[i])) {
+				ns += string(s[i])
+			} else {
+				break
+			}
+		}
+		index = index + len(ns) - 1
+		if ns == "return" {
+			ts.add(&Token{TokenReturn, 0})
+		} else {
+			ts.add(&Token{TokenIdentifier, int(r)})
+		}
+	} else if r == ';' {
+		ts.add(&Token{TokenSemi, 0})
 	}
 	if index < N-1 {
 		ts.merge(tokenize(s, index+1))

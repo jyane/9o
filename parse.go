@@ -16,13 +16,18 @@ const (
 	NodeNotEqual       NodeType = "!="
 	NodeLessEqual      NodeType = "<="
 	NodeLess           NodeType = "<"
+	NodeAssign         NodeType = "="
+	NodeSemi           NodeType = ";"
+	NodeLvalue         NodeType = "lvalue"
+	NodeReturn         NodeType = "return"
 )
 
 type Node struct {
-	typ NodeType
-	rhs *Node
-	lhs *Node
-	val int
+	typ    NodeType
+	rhs    *Node
+	lhs    *Node
+	val    int
+	offset int
 }
 
 func (node *Node) print() {
@@ -44,7 +49,10 @@ func term(ts *TokenStream) *Node {
 		}
 		return node
 	} else if ts.consume(TokenNumber) {
-		return &Node{NodeNumber, nil, nil, t.value}
+		return &Node{NodeNumber, nil, nil, t.value, 0}
+	} else if ts.consume(TokenIdentifier) {
+		name := rune(t.value)
+		return &Node{NodeLvalue, nil, nil, 0, (int(name-'a') + 1) * 8}
 	}
 	panic("parse error: unknown")
 }
@@ -54,7 +62,7 @@ func unary(ts *TokenStream) *Node {
 		return term(ts)
 	}
 	if ts.consume(TokenMinus) {
-		return &Node{NodeMinus, &Node{NodeNumber, nil, nil, 0}, term(ts), 0}
+		return &Node{NodeMinus, &Node{NodeNumber, nil, nil, 0, 0}, term(ts), 0, 0}
 	}
 	return term(ts)
 }
@@ -63,9 +71,9 @@ func mul(ts *TokenStream) *Node {
 	node := unary(ts)
 	for {
 		if ts.consume(TokenMultiply) {
-			node = &Node{NodeMultiply, node, unary(ts), 0}
+			node = &Node{NodeMultiply, node, unary(ts), 0, 0}
 		} else if ts.consume(TokenDivide) {
-			node = &Node{NodeDivide, node, unary(ts), 0}
+			node = &Node{NodeDivide, node, unary(ts), 0, 0}
 		} else {
 			return node
 		}
@@ -76,9 +84,9 @@ func add(ts *TokenStream) *Node {
 	node := mul(ts)
 	for {
 		if ts.consume(TokenPlus) {
-			node = &Node{NodePlus, node, mul(ts), 0}
+			node = &Node{NodePlus, node, mul(ts), 0, 0}
 		} else if ts.consume(TokenMinus) {
-			node = &Node{NodeMinus, node, mul(ts), 0}
+			node = &Node{NodeMinus, node, mul(ts), 0, 0}
 		} else {
 			return node
 		}
@@ -89,13 +97,13 @@ func rational(ts *TokenStream) *Node {
 	node := add(ts)
 	for {
 		if ts.consume(TokenLessEqual) {
-			node = &Node{NodeLessEqual, node, add(ts), 0}
+			node = &Node{NodeLessEqual, node, add(ts), 0, 0}
 		} else if ts.consume(TokenGreaterEqual) {
-			node = &Node{NodeLessEqual, add(ts), node, 0}
+			node = &Node{NodeLessEqual, add(ts), node, 0, 0}
 		} else if ts.consume(TokenLess) {
-			node = &Node{NodeLess, node, add(ts), 0}
+			node = &Node{NodeLess, node, add(ts), 0, 0}
 		} else if ts.consume(TokenGreater) {
-			node = &Node{NodeLess, add(ts), node, 0}
+			node = &Node{NodeLess, add(ts), node, 0, 0}
 		} else {
 			return node
 		}
@@ -106,19 +114,48 @@ func equality(ts *TokenStream) *Node {
 	node := rational(ts)
 	for {
 		if ts.consume(TokenEqual) {
-			node = &Node{NodeEqual, node, rational(ts), 0}
+			node = &Node{NodeEqual, node, rational(ts), 0, 0}
 		} else if ts.consume(TokenNotEqual) {
-			node = &Node{NodeNotEqual, node, rational(ts), 0}
+			node = &Node{NodeNotEqual, node, rational(ts), 0, 0}
 		} else {
 			return node
 		}
 	}
 }
 
-func expr(ts *TokenStream) *Node {
-	return equality(ts)
+func assign(ts *TokenStream) *Node {
+	node := equality(ts)
+	if ts.consume(TokenAssign) {
+		node = &Node{NodeAssign, assign(ts), node, 0, 0}
+	}
+	return node
 }
 
-func Parse(ts *TokenStream) *Node {
-	return expr(ts)
+func expr(ts *TokenStream) *Node {
+	return assign(ts)
+}
+
+func stmt(ts *TokenStream) *Node {
+	node := &Node{}
+	if ts.consume(TokenReturn) {
+		node = &Node{NodeReturn, nil, expr(ts), 0, 0}
+	} else {
+		node = expr(ts)
+	}
+	if !ts.consume(TokenSemi) {
+		panic("token is not ';'")
+	}
+	return node
+}
+
+func program(ts *TokenStream) []*Node {
+	var nodes []*Node
+	for !ts.isEnd() {
+		nodes = append(nodes, stmt(ts))
+	}
+	return nodes
+}
+
+func Parse(ts *TokenStream) []*Node {
+	return program(ts)
 }

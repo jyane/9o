@@ -2,9 +2,45 @@ package main
 
 import "fmt"
 
+func genLvalue(node *Node) {
+	if node.typ != NodeLvalue {
+		panic("lvalue is not a variable.")
+	}
+	fmt.Println("  mov rax, rbp")
+	fmt.Printf("  sub rax, %d\n", node.offset)
+	fmt.Println("  push rax")
+}
+
 func gen(node *Node) {
 	if node.typ == NodeNumber {
 		fmt.Printf("  push %d\n", node.val)
+		return
+	}
+
+	if node.typ == NodeReturn {
+		gen(node.lhs)
+		fmt.Println("  pop rax")
+		fmt.Println("  mov rsp, rbp")
+		fmt.Println("  pop rbp")
+		fmt.Println("  ret")
+		return
+	}
+
+	if node.typ == NodeLvalue {
+		genLvalue(node)
+		fmt.Println("  pop rax")
+		fmt.Println("  mov rax, [rax]")
+		fmt.Println("  push rax")
+		return
+	}
+
+	if node.typ == NodeAssign {
+		genLvalue(node.lhs)
+		gen(node.rhs)
+		fmt.Println("  pop rdi")
+		fmt.Println("  pop rax")
+		fmt.Println("  mov [rax], rdi")
+		fmt.Println("  push rdi")
 		return
 	}
 
@@ -45,11 +81,18 @@ func gen(node *Node) {
 	fmt.Println("  push rax")
 }
 
-func Gen(root *Node) {
+func Gen(roots []*Node) {
 	fmt.Println(".intel_syntax noprefix")
 	fmt.Println(".global _main")
 	fmt.Println("_main:")
-	gen(root)
-	fmt.Println("  pop rax")
+	fmt.Println("  push rbp")
+	fmt.Println("  mov rbp, rsp")
+	fmt.Println("  sub rsp, 208")
+	for _, v := range roots {
+		gen(v)
+		fmt.Println("  pop rax")
+	}
+	fmt.Println("  mov rsp, rbp")
+	fmt.Println("  pop rbp")
 	fmt.Println("  ret")
 }

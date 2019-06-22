@@ -15,7 +15,7 @@ func main() {
 
 	ts := Tokenize(args[0])
 	// ts.print()
-	node := Parse(ts)
+	nodes := Parse(ts)
 	// node.print()
-	Gen(node)
+	Gen(nodes)
 }
