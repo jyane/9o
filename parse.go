@@ -12,6 +12,10 @@ const (
 	NodeDivide         NodeType = "/"
 	NodeOpenParenthes  NodeType = "("
 	NodeCloseParenthes NodeType = ")"
+	NodeEqual          NodeType = "=="
+	NodeNotEqual       NodeType = "!="
+	NodeLessEqual      NodeType = "<="
+	NodeLess           NodeType = "<"
 )
 
 type Node struct {
@@ -68,7 +72,7 @@ func mul(ts *TokenStream) *Node {
 	}
 }
 
-func expr(ts *TokenStream) *Node {
+func add(ts *TokenStream) *Node {
 	node := mul(ts)
 	for {
 		if ts.consume(TokenPlus) {
@@ -79,6 +83,40 @@ func expr(ts *TokenStream) *Node {
 			return node
 		}
 	}
+}
+
+func rational(ts *TokenStream) *Node {
+	node := add(ts)
+	for {
+		if ts.consume(TokenLessEqual) {
+			node = &Node{NodeLessEqual, node, add(ts), 0}
+		} else if ts.consume(TokenGreaterEqual) {
+			node = &Node{NodeLessEqual, add(ts), node, 0}
+		} else if ts.consume(TokenLess) {
+			node = &Node{NodeLess, node, add(ts), 0}
+		} else if ts.consume(TokenGreater) {
+			node = &Node{NodeLess, add(ts), node, 0}
+		} else {
+			return node
+		}
+	}
+}
+
+func equality(ts *TokenStream) *Node {
+	node := rational(ts)
+	for {
+		if ts.consume(TokenEqual) {
+			node = &Node{NodeEqual, node, rational(ts), 0}
+		} else if ts.consume(TokenNotEqual) {
+			node = &Node{NodeNotEqual, node, rational(ts), 0}
+		} else {
+			return node
+		}
+	}
+}
+
+func expr(ts *TokenStream) *Node {
+	return equality(ts)
 }
 
 func Parse(ts *TokenStream) *Node {

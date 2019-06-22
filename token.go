@@ -16,6 +16,12 @@ const (
 	TokenNumber         TokenType = "number"
 	TokenOpenParenthes  TokenType = "("
 	TokenCloseParenthes TokenType = ")"
+	TokenEqual          TokenType = "=="
+	TokenNotEqual       TokenType = "!="
+	TokenLessEqual      TokenType = "<="
+	TokenLess           TokenType = "<"
+	TokenGreaterEqual   TokenType = ">="
+	TokenGreater        TokenType = ">"
 )
 
 type Token struct {
@@ -83,6 +89,32 @@ func tokenize(s string, index int) *TokenStream {
 		ts.add(&Token{TokenOpenParenthes, 0})
 	} else if r == ')' {
 		ts.add(&Token{TokenCloseParenthes, 0})
+	} else if r == '=' {
+		if index+1 < N-1 && rune(s[index+1]) == '=' {
+			index = index + 1
+			ts.add(&Token{TokenEqual, 0})
+		}
+	} else if r == '!' {
+		if index+1 < N-1 && rune(s[index+1]) == '=' {
+			index = index + 1
+			ts.add(&Token{TokenNotEqual, 0})
+		} else {
+			// Todo: Implement bit
+		}
+	} else if r == '<' {
+		if index+1 < N-1 && rune(s[index+1]) == '=' {
+			index = index + 1
+			ts.add(&Token{TokenLessEqual, 0})
+		} else {
+			ts.add(&Token{TokenLess, 0})
+		}
+	} else if r == '>' {
+		if index+1 < N-1 && rune(s[index+1]) == '=' {
+			index = index + 1
+			ts.add(&Token{TokenGreaterEqual, 0})
+		} else {
+			ts.add(&Token{TokenGreater, 0})
+		}
 	} else if isDigit(r) {
 		var ns string
 		for i := index; i < N; i++ {

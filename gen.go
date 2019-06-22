@@ -24,6 +24,22 @@ func gen(node *Node) {
 	case NodeDivide:
 		fmt.Println("  cqo")
 		fmt.Println("  idiv rdi")
+	case NodeEqual:
+		fmt.Println("  cmp rax, rdi")
+		fmt.Println("  sete al")
+		fmt.Println("  movzx rax, al")
+	case NodeLess:
+		fmt.Println("  cmp rax, rdi")
+		fmt.Println("  setl al")
+		fmt.Println("  movzx rax, al")
+	case NodeLessEqual:
+		fmt.Println("  cmp rax, rdi")
+		fmt.Println("  setle al")
+		fmt.Println("  movzx rax, al")
+	case NodeNotEqual:
+		fmt.Println("  cmp rax, rdi")
+		fmt.Println("  setne al")
+		fmt.Println("  movzx rax, al")
 	}
 
 	fmt.Println("  push rax")
