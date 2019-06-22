@@ -31,6 +31,7 @@ const (
 type Token struct {
 	typ   TokenType
 	value int
+	name  string
 }
 
 type TokenStream struct {
@@ -90,44 +91,44 @@ func tokenize(s string, index int) *TokenStream {
 	r := []rune(s)[index]
 	N := len(s)
 	if r == '+' {
-		ts.add(&Token{TokenPlus, 0})
+		ts.add(&Token{TokenPlus, 0, ""})
 	} else if r == '-' {
-		ts.add(&Token{TokenMinus, 0})
+		ts.add(&Token{TokenMinus, 0, ""})
 	} else if r == '*' {
-		ts.add(&Token{TokenMultiply, 0})
+		ts.add(&Token{TokenMultiply, 0, ""})
 	} else if r == '/' {
-		ts.add(&Token{TokenDivide, 0})
+		ts.add(&Token{TokenDivide, 0, ""})
 	} else if r == '(' {
-		ts.add(&Token{TokenOpenParenthes, 0})
+		ts.add(&Token{TokenOpenParenthes, 0, ""})
 	} else if r == ')' {
-		ts.add(&Token{TokenCloseParenthes, 0})
+		ts.add(&Token{TokenCloseParenthes, 0, ""})
 	} else if r == '=' {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
 			index = index + 1
-			ts.add(&Token{TokenEqual, 0})
+			ts.add(&Token{TokenEqual, 0, ""})
 		} else {
-			ts.add(&Token{TokenAssign, 0})
+			ts.add(&Token{TokenAssign, 0, ""})
 		}
 	} else if r == '!' {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
 			index = index + 1
-			ts.add(&Token{TokenNotEqual, 0})
+			ts.add(&Token{TokenNotEqual, 0, ""})
 		} else {
 			// Todo: Implement bit
 		}
 	} else if r == '<' {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
 			index = index + 1
-			ts.add(&Token{TokenLessEqual, 0})
+			ts.add(&Token{TokenLessEqual, 0, ""})
 		} else {
-			ts.add(&Token{TokenLess, 0})
+			ts.add(&Token{TokenLess, 0, ""})
 		}
 	} else if r == '>' {
 		if index+1 < N-1 && rune(s[index+1]) == '=' {
 			index = index + 1
-			ts.add(&Token{TokenGreaterEqual, 0})
+			ts.add(&Token{TokenGreaterEqual, 0, ""})
 		} else {
-			ts.add(&Token{TokenGreater, 0})
+			ts.add(&Token{TokenGreater, 0, ""})
 		}
 	} else if isDigit(r) {
 		var ns string
@@ -143,7 +144,7 @@ func tokenize(s string, index int) *TokenStream {
 			panic("tokenize error: [" + ns + "]")
 		}
 		index = index + len(ns) - 1
-		ts.add(&Token{TokenNumber, num})
+		ts.add(&Token{TokenNumber, num, ""})
 	} else if isLowerAlphabet(r) {
 		var ns string
 		for i := index; i < N; i++ {
@@ -155,12 +156,12 @@ func tokenize(s string, index int) *TokenStream {
 		}
 		index = index + len(ns) - 1
 		if ns == "return" {
-			ts.add(&Token{TokenReturn, 0})
+			ts.add(&Token{TokenReturn, 0, ""})
 		} else {
-			ts.add(&Token{TokenIdentifier, int(r)})
+			ts.add(&Token{TokenIdentifier, 0, ns})
 		}
 	} else if r == ';' {
-		ts.add(&Token{TokenSemi, 0})
+		ts.add(&Token{TokenSemi, 0, ""})
 	}
 	if index < N-1 {
 		ts.merge(tokenize(s, index+1))
@@ -170,6 +171,6 @@ func tokenize(s string, index int) *TokenStream {
 
 func Tokenize(s string) *TokenStream {
 	ts := tokenize(s, 0)
-	ts.add(&Token{TokenEOF, 0})
+	ts.add(&Token{TokenEOF, 0, ""})
 	return ts
 }

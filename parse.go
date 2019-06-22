@@ -40,6 +40,9 @@ func (node *Node) print() {
 	}
 }
 
+var m = make(map[string]int)
+var maxOffset = 0
+
 func term(ts *TokenStream) *Node {
 	t := ts.now()
 	if ts.consume(TokenOpenParenthes) {
@@ -51,8 +54,16 @@ func term(ts *TokenStream) *Node {
 	} else if ts.consume(TokenNumber) {
 		return &Node{NodeNumber, nil, nil, t.value, 0}
 	} else if ts.consume(TokenIdentifier) {
-		name := rune(t.value)
-		return &Node{NodeLvalue, nil, nil, 0, (int(name-'a') + 1) * 8}
+		offset := -1
+		v, ok := m[t.name]
+		if ok {
+			offset = v
+		} else {
+			maxOffset = maxOffset + 8
+			m[t.name] = maxOffset
+			offset = maxOffset
+		}
+		return &Node{NodeLvalue, nil, nil, 0, offset}
 	}
 	panic("parse error: unknown")
 }

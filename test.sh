@@ -14,7 +14,7 @@ assert() {
     fi
 }
 
-assert 4 'a = 4; return a;'
+assert 4 'ab = 4; return ab;'
 assert 42 '42;'
 assert 0 'return 0;'
 assert 8 ' 11 * 1 - 3 ;'
@@ -29,5 +29,6 @@ assert 1 '1 < 2;'
 assert 1 '2 > 1;'
 assert 1 '1 == 1;'
 assert 1 '1 != 2;'
+assert 6 'foo = 1; bar = 2; return (foo + bar) * 2;'
 
 echo 'Done'
