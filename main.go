@@ -18,7 +18,8 @@ func main() {
 		debug = true
 	}
 
-	ts := Tokenize(args[0])
+	src := Read(args[0])
+	ts := Tokenize(src)
 
 	if debug {
 		ts.print()
@@ -32,5 +33,6 @@ func main() {
 		}
 	}
 
-	Gen(nodes)
+	asm := Gen(nodes)
+	Write("out.s", asm)
 }
