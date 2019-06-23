@@ -30,6 +30,22 @@ type Node struct {
 	offset int
 }
 
+func newNode(typ NodeType, rhs *Node, lhs *Node) *Node {
+	return &Node{typ, rhs, lhs, 0, 0}
+}
+
+func newNumberNode(rhs *Node, lhs *Node, val int) *Node {
+	node := newNode(NodeNumber, rhs, lhs)
+	node.val = val
+	return node
+}
+
+func newLvalueNode(rhs *Node, lhs *Node, offset int) *Node {
+	node := newNode(NodeLvalue, rhs, lhs)
+	node.offset = offset
+	return node
+}
+
 func (node *Node) print() {
 	if node.lhs != nil {
 		node.lhs.print()
@@ -52,7 +68,7 @@ func term(ts *TokenStream) *Node {
 		}
 		return node
 	} else if ts.consume(TokenNumber) {
-		return &Node{NodeNumber, nil, nil, t.value, 0}
+		return newNumberNode(nil, nil, t.value)
 	} else if ts.consume(TokenIdentifier) {
 		offset := -1
 		v, ok := m[t.name]
@@ -63,7 +79,7 @@ func term(ts *TokenStream) *Node {
 			m[t.name] = maxOffset
 			offset = maxOffset
 		}
-		return &Node{NodeLvalue, nil, nil, 0, offset}
+		return newLvalueNode(nil, nil, offset)
 	}
 	panic("parse error: unknown")
 }
@@ -73,7 +89,7 @@ func unary(ts *TokenStream) *Node {
 		return term(ts)
 	}
 	if ts.consume(TokenMinus) {
-		return &Node{NodeMinus, &Node{NodeNumber, nil, nil, 0, 0}, term(ts), 0, 0}
+		return newNode(NodeMinus, newNumberNode(nil, nil, 0), term(ts))
 	}
 	return term(ts)
 }
@@ -82,9 +98,9 @@ func mul(ts *TokenStream) *Node {
 	node := unary(ts)
 	for {
 		if ts.consume(TokenMultiply) {
-			node = &Node{NodeMultiply, node, unary(ts), 0, 0}
+			node = newNode(NodeMultiply, node, unary(ts))
 		} else if ts.consume(TokenDivide) {
-			node = &Node{NodeDivide, node, unary(ts), 0, 0}
+			node = newNode(NodeDivide, node, unary(ts))
 		} else {
 			return node
 		}
@@ -95,9 +111,9 @@ func add(ts *TokenStream) *Node {
 	node := mul(ts)
 	for {
 		if ts.consume(TokenPlus) {
-			node = &Node{NodePlus, node, mul(ts), 0, 0}
+			node = newNode(NodePlus, node, mul(ts))
 		} else if ts.consume(TokenMinus) {
-			node = &Node{NodeMinus, node, mul(ts), 0, 0}
+			node = newNode(NodeMinus, node, mul(ts))
 		} else {
 			return node
 		}
@@ -108,13 +124,13 @@ func rational(ts *TokenStream) *Node {
 	node := add(ts)
 	for {
 		if ts.consume(TokenLessEqual) {
-			node = &Node{NodeLessEqual, node, add(ts), 0, 0}
+			node = newNode(NodeLessEqual, node, add(ts))
 		} else if ts.consume(TokenGreaterEqual) {
-			node = &Node{NodeLessEqual, add(ts), node, 0, 0}
+			node = newNode(NodeLessEqual, add(ts), node)
 		} else if ts.consume(TokenLess) {
-			node = &Node{NodeLess, node, add(ts), 0, 0}
+			node = newNode(NodeLess, node, add(ts))
 		} else if ts.consume(TokenGreater) {
-			node = &Node{NodeLess, add(ts), node, 0, 0}
+			node = newNode(NodeLess, add(ts), node)
 		} else {
 			return node
 		}
@@ -125,9 +141,9 @@ func equality(ts *TokenStream) *Node {
 	node := rational(ts)
 	for {
 		if ts.consume(TokenEqual) {
-			node = &Node{NodeEqual, node, rational(ts), 0, 0}
+			node = newNode(NodeEqual, node, rational(ts))
 		} else if ts.consume(TokenNotEqual) {
-			node = &Node{NodeNotEqual, node, rational(ts), 0, 0}
+			node = newNode(NodeNotEqual, node, rational(ts))
 		} else {
 			return node
 		}
@@ -137,7 +153,7 @@ func equality(ts *TokenStream) *Node {
 func assign(ts *TokenStream) *Node {
 	node := equality(ts)
 	if ts.consume(TokenAssign) {
-		node = &Node{NodeAssign, assign(ts), node, 0, 0}
+		node = newNode(NodeAssign, assign(ts), node)
 	}
 	return node
 }
@@ -149,7 +165,7 @@ func expr(ts *TokenStream) *Node {
 func stmt(ts *TokenStream) *Node {
 	node := &Node{}
 	if ts.consume(TokenReturn) {
-		node = &Node{NodeReturn, nil, expr(ts), 0, 0}
+		node = newNode(NodeReturn, nil, expr(ts))
 	} else {
 		node = expr(ts)
 	}
