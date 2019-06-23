@@ -34,5 +34,6 @@ assert 1 'foo = 1; if (foo == 1) return 1; return 0;'
 assert 0 'foo = 1; if (foo == 2) return 1; else return 0;'
 assert 10 'foo = 1; while (foo < 10) foo = foo + 1; return foo;'
 assert 3 'foo = 1; while (foo < 3) foo = foo + 1; return foo;'
+assert 11 'foo = 1; while (foo < 10) { foo = foo + 1; foo = foo + 1; } return foo;'
 
 echo 'Done'

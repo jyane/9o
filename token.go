@@ -29,6 +29,8 @@ const (
 	TokenIf             TokenType = "if"
 	TokenElse           TokenType = "else"
 	TokenWhile          TokenType = "while"
+	TokenOpenBrace      TokenType = "{"
+	TokenCloseBrace     TokenType = "}"
 )
 
 type Token struct {
@@ -133,6 +135,10 @@ func tokenize(s string, index int) *TokenStream {
 		} else {
 			ts.add(&Token{TokenGreater, 0, ""})
 		}
+	} else if r == '{' {
+		ts.add(&Token{TokenOpenBrace, 0, ""})
+	} else if r == '}' {
+		ts.add(&Token{TokenCloseBrace, 0, ""})
 	} else if isDigit(r) {
 		var ns string
 		for i := index; i < N; i++ {

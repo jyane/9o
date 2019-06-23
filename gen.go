@@ -76,6 +76,14 @@ func gen(node *Node) {
 		return
 	}
 
+	if node.typ == NodeBlock {
+		for _, stmt := range node.stmts {
+			gen(stmt)
+			fmt.Println("  pop rax")
+		}
+		return
+	}
+
 	gen(node.lhs)
 	gen(node.rhs)
 

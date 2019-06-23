@@ -23,6 +23,7 @@ const (
 	NodeIf             NodeType = "if"
 	NodeElse           NodeType = "else"
 	NodeWhile          NodeType = "while"
+	NodeBlock          NodeType = "block"
 )
 
 type Node struct {
@@ -36,10 +37,13 @@ type Node struct {
 	cond  *Node
 	thenb *Node
 	elseb *Node
+
+	// brace
+	stmts []*Node
 }
 
 func newNode(typ NodeType, rhs *Node, lhs *Node) *Node {
-	return &Node{typ, rhs, lhs, 0, 0, nil, nil, nil}
+	return &Node{typ, rhs, lhs, 0, 0, nil, nil, nil, nil}
 }
 
 func newNumberNode(rhs *Node, lhs *Node, val int) *Node {
@@ -182,8 +186,14 @@ func expr(ts *TokenStream) *Node {
 func stmt(ts *TokenStream) *Node {
 	node := &Node{}
 
-	// if
-	if ts.consume(TokenIf) {
+	if ts.consume(TokenOpenBrace) {
+		node = newNode(NodeBlock, nil, nil)
+		var stmts = []*Node{}
+		for !ts.consume(TokenCloseBrace) {
+			stmts = append(stmts, stmt(ts))
+		}
+		node.stmts = stmts
+	} else if ts.consume(TokenIf) {
 		if !ts.consume(TokenOpenParenthes) {
 			panic("couldn't find '(' after if")
 		}
@@ -221,6 +231,10 @@ func stmt(ts *TokenStream) *Node {
 		if !ts.consume(TokenSemi) {
 			panic("statement is not end with ';'")
 		}
+	}
+
+	if node.typ == "" {
+		panic("node type is empty, statement parse error")
 	}
 	return node
 }
