@@ -22,6 +22,7 @@ const (
 	NodeReturn         NodeType = "return"
 	NodeIf             NodeType = "if"
 	NodeElse           NodeType = "else"
+	NodeWhile          NodeType = "while"
 )
 
 type Node struct {
@@ -198,6 +199,18 @@ func stmt(ts *TokenStream) *Node {
 		} else {
 			node = newIfNode(cond, thenb, nil)
 		}
+	} else if ts.consume(TokenWhile) {
+		node = newNode(NodeWhile, nil, nil)
+		if !ts.consume(TokenOpenParenthes) {
+			panic("couldn't find '(' after while")
+		}
+		cond := expr(ts)
+		if !ts.consume(TokenCloseParenthes) {
+			panic("couldn't find ')' after while and '('")
+		}
+		thenb := stmt(ts)
+		node.cond = cond
+		node.thenb = thenb
 	} else if ts.consume(TokenReturn) {
 		node = newNode(NodeReturn, nil, expr(ts))
 		if !ts.consume(TokenSemi) {

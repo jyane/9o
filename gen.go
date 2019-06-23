@@ -63,6 +63,19 @@ func gen(node *Node) {
 		return
 	}
 
+	// TODO: arbitrary while
+	if node.typ == NodeWhile {
+		fmt.Printf(".Lbegin00%d:\n", 1)
+		gen(node.cond)
+		fmt.Println("  pop rax")
+		fmt.Println("  cmp rax, 0")
+		fmt.Printf("  je .Lend00%d\n", 1)
+		gen(node.thenb)
+		fmt.Printf("jmp .Lbegin00%d\n", 1)
+		fmt.Printf(".Lend00%d:", 1)
+		return
+	}
+
 	gen(node.lhs)
 	gen(node.rhs)
 

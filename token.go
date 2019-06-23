@@ -28,6 +28,7 @@ const (
 	TokenReturn         TokenType = "return"
 	TokenIf             TokenType = "if"
 	TokenElse           TokenType = "else"
+	TokenWhile          TokenType = "while"
 )
 
 type Token struct {
@@ -163,6 +164,8 @@ func tokenize(s string, index int) *TokenStream {
 			ts.add(&Token{TokenIf, 0, ""})
 		} else if ns == "else" {
 			ts.add(&Token{TokenElse, 0, ""})
+		} else if ns == "while" {
+			ts.add(&Token{TokenWhile, 0, ""})
 		} else {
 			ts.add(&Token{TokenIdentifier, 0, ns})
 		}
