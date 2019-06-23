@@ -82,8 +82,8 @@ func isDigit(r rune) bool {
 	return 0 <= c && c <= 9
 }
 
-func isLowerAlphabet(r rune) bool {
-	return 'a' <= r && r <= 'z'
+func isAlphabetOrNumber(r rune) bool {
+	return ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') || ('0' <= r && r <= '9')
 }
 
 func tokenize(s string, index int) *TokenStream {
@@ -145,10 +145,10 @@ func tokenize(s string, index int) *TokenStream {
 		}
 		index = index + len(ns) - 1
 		ts.add(&Token{TokenNumber, num, ""})
-	} else if isLowerAlphabet(r) {
+	} else if isAlphabetOrNumber(r) {
 		var ns string
 		for i := index; i < N; i++ {
-			if isLowerAlphabet(rune(s[i])) {
+			if isAlphabetOrNumber(rune(s[i])) {
 				ns += string(s[i])
 			} else {
 				break
