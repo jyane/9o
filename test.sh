@@ -35,5 +35,6 @@ assert 0  'test/017.c'
 assert 10 'test/018.c'
 assert 3  'test/019.c'
 assert 11 'test/020.c'
+assert 3  'test/021.c'
 
 echo 'Done'
