@@ -26,6 +26,8 @@ const (
 	TokenAssign         TokenType = "="
 	TokenSemi           TokenType = ";"
 	TokenReturn         TokenType = "return"
+	TokenIf             TokenType = "if"
+	TokenElse           TokenType = "else"
 )
 
 type Token struct {
@@ -157,6 +159,10 @@ func tokenize(s string, index int) *TokenStream {
 		index = index + len(ns) - 1
 		if ns == "return" {
 			ts.add(&Token{TokenReturn, 0, ""})
+		} else if ns == "if" {
+			ts.add(&Token{TokenIf, 0, ""})
+		} else if ns == "else" {
+			ts.add(&Token{TokenElse, 0, ""})
 		} else {
 			ts.add(&Token{TokenIdentifier, 0, ns})
 		}

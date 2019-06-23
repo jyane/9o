@@ -20,6 +20,8 @@ const (
 	NodeSemi           NodeType = ";"
 	NodeLvalue         NodeType = "lvalue"
 	NodeReturn         NodeType = "return"
+	NodeIf             NodeType = "if"
+	NodeElse           NodeType = "else"
 )
 
 type Node struct {
@@ -28,10 +30,15 @@ type Node struct {
 	lhs    *Node
 	val    int
 	offset int
+
+	// if
+	cond  *Node
+	thenb *Node
+	elseb *Node
 }
 
 func newNode(typ NodeType, rhs *Node, lhs *Node) *Node {
-	return &Node{typ, rhs, lhs, 0, 0}
+	return &Node{typ, rhs, lhs, 0, 0, nil, nil, nil}
 }
 
 func newNumberNode(rhs *Node, lhs *Node, val int) *Node {
@@ -43,6 +50,14 @@ func newNumberNode(rhs *Node, lhs *Node, val int) *Node {
 func newLvalueNode(rhs *Node, lhs *Node, offset int) *Node {
 	node := newNode(NodeLvalue, rhs, lhs)
 	node.offset = offset
+	return node
+}
+
+func newIfNode(cond *Node, thenb *Node, elseb *Node) *Node {
+	node := newNode(NodeIf, nil, nil)
+	node.cond = cond
+	node.thenb = thenb
+	node.elseb = elseb
 	return node
 }
 
@@ -81,6 +96,7 @@ func term(ts *TokenStream) *Node {
 		}
 		return newLvalueNode(nil, nil, offset)
 	}
+	fmt.Println(t)
 	panic("parse error: unknown")
 }
 
@@ -164,13 +180,34 @@ func expr(ts *TokenStream) *Node {
 
 func stmt(ts *TokenStream) *Node {
 	node := &Node{}
-	if ts.consume(TokenReturn) {
+
+	// if
+	if ts.consume(TokenIf) {
+		if !ts.consume(TokenOpenParenthes) {
+			panic("couldn't find '(' after if")
+		}
+		cond := expr(ts)
+		if !ts.consume(TokenCloseParenthes) {
+			panic("couldn't find ')' after if and '('")
+		}
+		thenb := stmt(ts)
+		// else
+		if ts.consume(TokenElse) {
+			elseb := stmt(ts)
+			node = newIfNode(cond, thenb, elseb)
+		} else {
+			node = newIfNode(cond, thenb, nil)
+		}
+	} else if ts.consume(TokenReturn) {
 		node = newNode(NodeReturn, nil, expr(ts))
+		if !ts.consume(TokenSemi) {
+			panic("statement is not end with ';'")
+		}
 	} else {
 		node = expr(ts)
-	}
-	if !ts.consume(TokenSemi) {
-		panic("token is not ';'")
+		if !ts.consume(TokenSemi) {
+			panic("statement is not end with ';'")
+		}
 	}
 	return node
 }

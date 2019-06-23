@@ -44,6 +44,25 @@ func gen(node *Node) {
 		return
 	}
 
+	// TODO: arbitrary if
+	if node.typ == NodeIf {
+		gen(node.cond)
+		fmt.Println("  pop rax")
+		fmt.Println("  cmp rax, 0")
+		if node.elseb != nil {
+			fmt.Printf("  je .Lelse00%d\n", 1)
+			gen(node.thenb)
+			fmt.Printf(".Lelse00%d:\n", 1)
+			gen(node.elseb)
+			fmt.Printf(".Lend00%d:\n", 1)
+		} else {
+			fmt.Printf("  je .Lend00%d\n", 1)
+			gen(node.thenb)
+			fmt.Printf(".Lend00%d:\n", 1)
+		}
+		return
+	}
+
 	gen(node.lhs)
 	gen(node.rhs)
 
