@@ -13,9 +13,24 @@ func main() {
 		panic("too few argments")
 	}
 
+	debug := false
+	if len(args) == 2 && args[1] == "--debug" {
+		debug = true
+	}
+
 	ts := Tokenize(args[0])
-	// ts.print()
+
+	if debug {
+		ts.print()
+	}
+
 	nodes := Parse(ts)
-	// node.print()
+
+	if debug {
+		for _, node := range nodes {
+			node.print()
+		}
+	}
+
 	Gen(nodes)
 }
